@@ -5,7 +5,10 @@ import { API_URL } from "./config";
 const backendClient = axios.create({
   baseURL: API_URL,
   timeout: 30000,
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    "bypass-tunnel-reminder": "true",
+  },
 });
 
 export const queryGrok = async (

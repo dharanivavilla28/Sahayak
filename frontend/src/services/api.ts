@@ -5,6 +5,9 @@ import { API_URL } from "./config";
 const api = axios.create({
   baseURL: API_URL,
   timeout: 10000,
+  headers: {
+    "bypass-tunnel-reminder": "true",
+  },
 });
 
 export const fetchSchemes = async (query?: string, state?: string, category?: string): Promise<Scheme[]> => {
