@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Home, BookOpen, User, MessageSquare, Briefcase,
   Search, Send, X, ExternalLink, ChevronRight,
-  CheckCircle, Star, Loader
+  CheckCircle, Star, Loader, LogOut
 } from "lucide-react";
 import "./index.css";
 import { fetchSchemes, fetchStates, checkEligibility, sendChatMessage } from "./api";
@@ -84,6 +84,10 @@ const OCCUPATIONS = [
 
 const defaultProfile: Profile = {
   id: "user-1", name: "", state: "", age: 25, gender: "male", occupation: [], income: 0,
+};
+
+const guestProfile: Profile = {
+  id: "guest", name: "Guest", state: "", age: 0, gender: "all", occupation: [], income: 0,
 };
 
 const statusColor: Record<string, string> = {
@@ -364,7 +368,12 @@ function SchemesPage({ profile, onAddApplication }: {
 
 // ─── Page: Profile ────────────────────────────────────────────────────────────
 
-function ProfilePage({ profile, onUpdate }: { profile: Profile; onUpdate: (p: Profile) => void }) {
+function ProfilePage({ profile, onUpdate, onContinueAsGuest, isGuest }: {
+  profile: Profile;
+  onUpdate: (p: Profile) => void;
+  onContinueAsGuest: () => void;
+  isGuest: boolean;
+}) {
   const [form, setForm] = useState<Profile>(profile);
   const [occInput, setOccInput] = useState("");
   const [saved, setSaved] = useState(false);
@@ -392,25 +401,61 @@ function ProfilePage({ profile, onUpdate }: { profile: Profile; onUpdate: (p: Pr
         <div style={{ maxWidth: 680 }}>
           <form onSubmit={save}>
             <div className="card">
-              {(!profile.name || !profile.state) && (
-                <div style={{
-                  background: "linear-gradient(135deg, rgba(255, 153, 51, 0.08), rgba(19, 136, 8, 0.08))",
-                  border: "1px dashed var(--saffron)",
-                  padding: "16px 20px",
-                  borderRadius: "12px",
-                  marginBottom: "24px",
-                  fontSize: "14px",
-                  color: "var(--text-primary)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px"
-                }}>
-                  <span style={{ fontSize: 24 }}>👋</span>
-                  <div>
-                    <strong>Welcome to Sahayak!</strong> Please complete your profile details first to unlock all AI chatbot features and scheme recommendation matching.
+                {(!profile.name || !profile.state) && !isGuest && (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(255, 153, 51, 0.08), rgba(19, 136, 8, 0.08))",
+                    border: "1px dashed var(--saffron)",
+                    padding: "16px 20px",
+                    borderRadius: "12px",
+                    marginBottom: "24px",
+                    fontSize: "14px",
+                    color: "var(--text-primary)",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: 14 }}>
+                      <span style={{ fontSize: 24 }}>👋</span>
+                      <div>
+                        <strong>Welcome to Sahayak!</strong> Complete your profile to unlock personalised AI chatbot features and scheme matching.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onContinueAsGuest}
+                      style={{
+                        width: "100%",
+                        padding: "10px 16px",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--text-secondary)",
+                        fontSize: 13,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <span>👤</span> Continue as Guest (browse without profile)
+                    </button>
                   </div>
-                </div>
-              )}
+                )}
+                {isGuest && (
+                  <div style={{
+                    background: "rgba(255,153,51,0.06)",
+                    border: "1px dashed rgba(255,153,51,0.3)",
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    marginBottom: "20px",
+                    fontSize: 13,
+                    color: "var(--text-secondary)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}>
+                    <span style={{ fontSize: 18 }}>👤</span>
+                    <span>You are browsing as a <strong style={{ color: "var(--saffron)" }}>Guest</strong>. Fill in your details and save to get personalised recommendations.</span>
+                  </div>
+                )}
               <div className="flex items-center gap-3" style={{ marginBottom: 28 }}>
                 <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,var(--saffron),var(--green))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
                   {form.name ? form.name[0].toUpperCase() : "👤"}
@@ -662,7 +707,13 @@ const NAV = [
   { id: "profile", label: "Profile", Icon: User },
 ];
 
-function Sidebar({ page, onNavigate, isLocked }: { page: string; onNavigate: (p: string) => void; isLocked: boolean }) {
+function Sidebar({ page, onNavigate, isLocked, isGuest, onLogout }: {
+  page: string;
+  onNavigate: (p: string) => void;
+  isLocked: boolean;
+  isGuest: boolean;
+  onLogout: () => void;
+}) {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
@@ -674,6 +725,24 @@ function Sidebar({ page, onNavigate, isLocked }: { page: string; onNavigate: (p:
           </div>
         </div>
       </div>
+
+      {isGuest && (
+        <div style={{
+          margin: "0 12px 8px",
+          padding: "8px 12px",
+          background: "rgba(255,153,51,0.08)",
+          border: "1px solid rgba(255,153,51,0.2)",
+          borderRadius: "8px",
+          fontSize: 12,
+          color: "var(--saffron)",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}>
+          <span>👤</span> Browsing as Guest
+        </div>
+      )}
+
       <nav className="sidebar-nav">
         <div className="nav-section-label">Navigation</div>
         {NAV.map(({ id, label, Icon }) => {
@@ -693,6 +762,29 @@ function Sidebar({ page, onNavigate, isLocked }: { page: string; onNavigate: (p:
       </nav>
       <div className="sidebar-footer">
         <div className="tricolor-bar" />
+        <button
+          onClick={onLogout}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "10px 12px",
+            marginBottom: 10,
+            background: "rgba(239,68,68,0.07)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: 8,
+            color: "#f87171",
+            fontSize: 13,
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+          onMouseOver={e => (e.currentTarget.style.background = "rgba(239,68,68,0.14)")}
+          onMouseOut={e => (e.currentTarget.style.background = "rgba(239,68,68,0.07)")}
+        >
+          <LogOut size={14} /> {isGuest ? "Exit Guest" : "Logout"}
+        </button>
         <div className="text-sm text-muted" style={{ textAlign: "center" }}>
           Sahayak © 2025<br />Government Scheme Portal
         </div>
@@ -705,6 +797,7 @@ function Sidebar({ page, onNavigate, isLocked }: { page: string; onNavigate: (p:
 
 const PROFILE_KEY = "sahayak_profile_web";
 const APPS_KEY = "sahayak_applications_web";
+const GUEST_KEY = "sahayak_is_guest";
 
 export default function App() {
   const [profile, setProfile] = useState<Profile>(() => {
@@ -715,29 +808,52 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem(APPS_KEY) || "[]"); }
     catch { return []; }
   });
+  const [isGuest, setIsGuest] = useState<boolean>(() => {
+    return localStorage.getItem(GUEST_KEY) === "true";
+  });
 
-  const isProfileIncomplete = !profile.name || !profile.state;
+  const isProfileIncomplete = !isGuest && (!profile.name || !profile.state);
   const [page, setPage] = useState(() => {
     return isProfileIncomplete ? "profile" : "home";
   });
 
   useEffect(() => {
-    if (isProfileIncomplete) {
-      setPage("profile");
-    }
+    if (isProfileIncomplete) setPage("profile");
   }, [isProfileIncomplete]);
 
   function updateProfile(p: Profile) {
     setProfile(p);
     localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    // If they filled in a real profile, exit guest mode
+    if (p.name && p.state) {
+      setIsGuest(false);
+      localStorage.removeItem(GUEST_KEY);
+    }
   }
-  
+
+  function continueAsGuest() {
+    setIsGuest(true);
+    localStorage.setItem(GUEST_KEY, "true");
+    setProfile(guestProfile);
+    setPage("home");
+  }
+
+  function logout() {
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(APPS_KEY);
+    localStorage.removeItem(GUEST_KEY);
+    setProfile(defaultProfile);
+    setApplications([]);
+    setIsGuest(false);
+    setPage("profile");
+  }
+
   function addApplication(app: Application) {
     const updated = [app, ...applications];
     setApplications(updated);
     localStorage.setItem(APPS_KEY, JSON.stringify(updated));
   }
-  
+
   function updateAppStatus(id: string, status: Application["status"]) {
     const updated = applications.map(a => a.id === id ? { ...a, status } : a);
     setApplications(updated);
@@ -746,13 +862,19 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} onNavigate={setPage} isLocked={isProfileIncomplete} />
+      <Sidebar
+        page={page}
+        onNavigate={setPage}
+        isLocked={isProfileIncomplete}
+        isGuest={isGuest}
+        onLogout={logout}
+      />
       <main className="main-content">
-        {page === "home"         && <HomePage profile={profile} onNavigate={setPage} />}
-        {page === "schemes"      && <SchemesPage profile={profile} onAddApplication={addApplication} />}
-        {page === "chatbot"      && <ChatbotPage profile={profile} />}
+        {page === "home"         && <HomePage profile={isGuest ? guestProfile : profile} onNavigate={setPage} />}
+        {page === "schemes"      && <SchemesPage profile={isGuest ? guestProfile : profile} onAddApplication={addApplication} />}
+        {page === "chatbot"      && <ChatbotPage profile={isGuest ? guestProfile : profile} />}
         {page === "applications" && <ApplicationsPage applications={applications} onUpdateStatus={updateAppStatus} />}
-        {page === "profile"      && <ProfilePage profile={profile} onUpdate={updateProfile} />}
+        {page === "profile"      && <ProfilePage profile={profile} onUpdate={updateProfile} onContinueAsGuest={continueAsGuest} isGuest={isGuest} />}
       </main>
     </div>
   );
