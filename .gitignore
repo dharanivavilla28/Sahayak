@@ -5,6 +5,7 @@
 # Expo
 **/.expo/
 **/web-build/
+**/dist/
 
 # Python virtual env and cache
 **/venv/
