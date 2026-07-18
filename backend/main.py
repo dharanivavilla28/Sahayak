@@ -1,9 +1,14 @@
 import sys
+from dotenv import load_dotenv
+
+# Load .env variables before routing/config imports
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
-from routes import schemes, eligibility
+from routes import schemes, eligibility, chat
 
 # Ensure UTF-8 output on Windows
 if sys.stdout.encoding != "utf-8":
@@ -25,6 +30,7 @@ app.add_middleware(
 
 app.include_router(schemes.router)
 app.include_router(eligibility.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health")

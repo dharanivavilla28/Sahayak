@@ -30,8 +30,8 @@
       "package": "com.sahayak.app"
     },
     "extra": {
-      "API_URL": "https://kind-groups-doubt.loca.lt",
-      "GROK_API_URL": "https://api.grok.x.com",
+      "API_URL": "https://sahayak-api-backend.loca.lt",
+      "GROK_API_URL": "https://api.x.ai",
       "GROK_API_KEY": "YOUR_GROK_API_KEY"
     },
     "plugins": [
