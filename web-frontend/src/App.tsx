@@ -389,6 +389,25 @@ function ProfilePage({ profile, onUpdate }: { profile: Profile; onUpdate: (p: Pr
         <div style={{ maxWidth: 680 }}>
           <form onSubmit={save}>
             <div className="card">
+              {(!profile.name || !profile.state) && (
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(255, 153, 51, 0.08), rgba(19, 136, 8, 0.08))",
+                  border: "1px dashed var(--saffron)",
+                  padding: "16px 20px",
+                  borderRadius: "12px",
+                  marginBottom: "24px",
+                  fontSize: "14px",
+                  color: "var(--text-primary)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px"
+                }}>
+                  <span style={{ fontSize: 24 }}>👋</span>
+                  <div>
+                    <strong>Welcome to Sahayak!</strong> Please complete your profile details first to unlock all AI chatbot features and scheme recommendation matching.
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3" style={{ marginBottom: 28 }}>
                 <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,var(--saffron),var(--green))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
                   {form.name ? form.name[0].toUpperCase() : "👤"}
@@ -611,7 +630,7 @@ const NAV = [
   { id: "profile", label: "Profile", Icon: User },
 ];
 
-function Sidebar({ page, onNavigate }: { page: string; onNavigate: (p: string) => void }) {
+function Sidebar({ page, onNavigate, isLocked }: { page: string; onNavigate: (p: string) => void; isLocked: boolean }) {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
@@ -625,11 +644,20 @@ function Sidebar({ page, onNavigate }: { page: string; onNavigate: (p: string) =
       </div>
       <nav className="sidebar-nav">
         <div className="nav-section-label">Navigation</div>
-        {NAV.map(({ id, label, Icon }) => (
-          <button key={id} className={`nav-item ${page === id ? "active" : ""}`} onClick={() => onNavigate(id)}>
-            <Icon className="nav-icon" size={18} /> {label}
-          </button>
-        ))}
+        {NAV.map(({ id, label, Icon }) => {
+          const locked = isLocked && id !== "profile";
+          return (
+            <button
+              key={id}
+              className={`nav-item ${page === id ? "active" : ""}`}
+              onClick={() => !locked && onNavigate(id)}
+              style={locked ? { opacity: 0.4, cursor: "not-allowed" } : {}}
+              title={locked ? "Complete profile to unlock" : ""}
+            >
+              <Icon className="nav-icon" size={18} /> {label} {locked && "🔒"}
+            </button>
+          );
+        })}
       </nav>
       <div className="sidebar-footer">
         <div className="tricolor-bar" />
@@ -647,7 +675,6 @@ const PROFILE_KEY = "sahayak_profile_web";
 const APPS_KEY = "sahayak_applications_web";
 
 export default function App() {
-  const [page, setPage] = useState("home");
   const [profile, setProfile] = useState<Profile>(() => {
     try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null") || defaultProfile; }
     catch { return defaultProfile; }
@@ -657,19 +684,37 @@ export default function App() {
     catch { return []; }
   });
 
-  function updateProfile(p: Profile) { setProfile(p); localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+  const isProfileIncomplete = !profile.name || !profile.state;
+  const [page, setPage] = useState(() => {
+    return isProfileIncomplete ? "profile" : "home";
+  });
+
+  useEffect(() => {
+    if (isProfileIncomplete) {
+      setPage("profile");
+    }
+  }, [isProfileIncomplete]);
+
+  function updateProfile(p: Profile) {
+    setProfile(p);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+  }
+  
   function addApplication(app: Application) {
     const updated = [app, ...applications];
-    setApplications(updated); localStorage.setItem(APPS_KEY, JSON.stringify(updated));
+    setApplications(updated);
+    localStorage.setItem(APPS_KEY, JSON.stringify(updated));
   }
+  
   function updateAppStatus(id: string, status: Application["status"]) {
     const updated = applications.map(a => a.id === id ? { ...a, status } : a);
-    setApplications(updated); localStorage.setItem(APPS_KEY, JSON.stringify(updated));
+    setApplications(updated);
+    localStorage.setItem(APPS_KEY, JSON.stringify(updated));
   }
 
   return (
     <div className="app-shell">
-      <Sidebar page={page} onNavigate={setPage} />
+      <Sidebar page={page} onNavigate={setPage} isLocked={isProfileIncomplete} />
       <main className="main-content">
         {page === "home"         && <HomePage profile={profile} onNavigate={setPage} />}
         {page === "schemes"      && <SchemesPage profile={profile} onAddApplication={addApplication} />}
