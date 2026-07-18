@@ -1,0 +1,27 @@
+# Node.js
+**/node_modules/
+**/package-lock.json
+
+# Expo
+**/.expo/
+**/web-build/
+
+# Python virtual env and cache
+**/venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Environment files
+**/.env
+**/.env.local
+**/*.env
+
+# IDE / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
