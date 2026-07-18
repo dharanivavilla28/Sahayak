@@ -49,7 +49,7 @@ interface Application {
   id: string;
   schemeId: string;
   schemeName: string;
-  status: "Applied" | "In Progress" | "Approved" | "Rejected";
+  status: "Opened" | "Applied" | "Wait" | "Reject";
   date: string;
   notes: string;
   applicationLink: string | null;
@@ -87,8 +87,10 @@ const defaultProfile: Profile = {
 };
 
 const statusColor: Record<string, string> = {
-  "Applied": "badge-blue", "In Progress": "badge-saffron",
-  "Approved": "badge-green", "Rejected": "badge-red",
+  "Opened": "badge-blue",
+  "Applied": "badge-green",
+  "Wait": "badge-saffron",
+  "Reject": "badge-red",
 };
 
 function getMatchClass(score: number) {
@@ -279,7 +281,7 @@ function SchemesPage({ profile, onAddApplication }: {
   function handleApply(s: Scheme) {
     const app: Application = {
       id: Date.now().toString(), schemeId: s.id, schemeName: s.name,
-      status: "Applied", date: new Date().toLocaleDateString("en-IN"), notes: "", applicationLink: s.application_link,
+      status: "Opened", date: new Date().toLocaleDateString("en-IN"), notes: "", applicationLink: s.application_link,
     };
     onAddApplication(app);
     if (s.application_link) window.open(s.application_link, "_blank");
@@ -591,27 +593,56 @@ function ApplicationsPage({ applications, onUpdateStatus }: {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {applications.map(app => (
-              <div className="card" key={app.id}>
+              <div className="card" key={app.id} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{app.schemeName}</div>
-                    <div className="text-sm text-muted">Applied on {app.date}</div>
+                    <div className="text-sm text-muted">Created on {app.date}</div>
                   </div>
                   <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <select className="input" style={{ width: 160, padding: "8px 12px" }} value={app.status}
+                    <select className="input" style={{ width: 140, padding: "8px 12px" }} value={app.status}
                       onChange={e => onUpdateStatus(app.id, e.target.value as Application["status"])}>
-                      {(["Applied", "In Progress", "Approved", "Rejected"] as Application["status"][]).map(s => (
+                      {(["Opened", "Applied", "Wait", "Reject"] as Application["status"][]).map(s => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
                     <span className={`badge ${statusColor[app.status]}`}>{app.status}</span>
                     {app.applicationLink && (
                       <a href={app.applicationLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
-                        <ExternalLink size={14} /> Open
+                        <ExternalLink size={14} /> Open Link
                       </a>
                     )}
                   </div>
                 </div>
+
+                {app.status === "Opened" && (
+                  <div style={{
+                    padding: "12px 16px",
+                    background: "rgba(255, 153, 51, 0.05)",
+                    borderRadius: "8px",
+                    border: "1px dashed rgba(255, 153, 51, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 12
+                  }}>
+                    <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                      📋 Update this application status:
+                    </span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => onUpdateStatus(app.id, "Applied")} style={{ borderColor: "rgba(74, 222, 128, 0.3)", color: "#4ade80" }}>
+                        Mark as Applied
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => onUpdateStatus(app.id, "Wait")} style={{ borderColor: "rgba(255, 153, 51, 0.3)", color: "var(--saffron)" }}>
+                        Mark as Wait
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => onUpdateStatus(app.id, "Reject")} style={{ borderColor: "rgba(239, 68, 68, 0.3)", color: "#f87171" }}>
+                        Mark as Reject
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
