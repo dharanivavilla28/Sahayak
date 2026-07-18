@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Home, BookOpen, User, MessageSquare, Briefcase,
   Search, Send, X, ExternalLink, ChevronRight,
-  CheckCircle, Clock, XCircle, AlertCircle, Star, Loader
+  CheckCircle, Star, Loader
 } from "lucide-react";
 import "./index.css";
 import { fetchSchemes, fetchStates, checkEligibility, sendChatMessage } from "./api";
@@ -326,9 +326,10 @@ function SchemesPage({ profile, onAddApplication }: {
         ) : (
           <div className="grid-3">
             {displayed.map(item => {
-              const s = view === "eligible" ? (item as EligibilityResult).scheme : (item as Scheme);
-              const score = view === "eligible" ? (item as EligibilityResult).match_score : null;
-              const elig = view === "eligible" ? (item as EligibilityResult).eligible : false;
+              const res = item as EligibilityResult;
+              const s = res.scheme;
+              const score = res.match_score;
+              const elig = res.eligible;
               return (
                 <div className="scheme-card" key={s.id} onClick={() => setSelected(s)}>
                   <div className="scheme-icon">{s.icon}</div>
